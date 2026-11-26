@@ -1,8 +1,9 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from dotenv import load_dotenv
 import pymysql
 import os
+from dotenv import load_dotenv
+from models import 每日记录
 
 # 加载环境变量
 result = load_dotenv()
@@ -33,6 +34,16 @@ def add_time_record():
     if sleep_h < 0 or study_h < 0 or fun_h < 0 or sport_h < 0:
         return jsonify({"status": "error", "msg": "时间不能为负数！"}), 400
 
+    # 实例化 每日记录 类
+    try:
+        今天的记录 = 每日记录(睡眠 = sleep_h, 学习=study_h, 娱乐=fun_h, 运动= sport_h)
+    except Exception as e:
+        return jsonify({"status": "error", "msg": f"数据实例化失败: {str(e)}"}), 400
+
+    # 利用类里 `__post_init__` 自动计算出的剩余时间来做二次校验
+    if 今天的记录.剩余时间 < 0:
+        return jsonify({"status": "error", "msg": f" {今天的记录.总时间} 超过24小时了！"}), 400
+
     try:
         connection = get_db_connection()
         cursor = connection.cursor()
@@ -40,12 +51,23 @@ def add_time_record():
         # 执行插入语句
         sql = "INSERT INTO time_records (sleep_hours, study_hours, fun_hours, sport_hours) VALUES (%s, %s, %s, %s)"
         cursor.execute(sql, (sleep_h, study_h, fun_h, sport_h))
+
+        # 插入数据库时，使用对象里的属性
+        cursor.execute(sql, (今天的记录.睡眠, 今天的记录.学习, 今天的记录.娱乐, 今天的记录.运动))
         
         # 提交事务（没有这一句，数据存不进数据库）
         connection.commit()
         connection.close()
 
-        return jsonify({"status": "success", "msg": "时间数据已成功存入数据库！"})
+        return jsonify({
+            "status": "success",
+            "msg": "时间数据已成功存入数据库！",
+            "analysis":{
+                "data": 今天的记录.日期,
+                "total_hours": 今天的记录.总时间,
+                "remaining_hours": 今天的记录.剩余时间
+            }
+        })
 
     except Exception as e:
         return jsonify({"status": "error", "msg": f"数据库报错了: {str(e)}"})

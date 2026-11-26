@@ -1,0 +1,14 @@
+# Python 缓存
+__pycache__/
+*.py[cod]
+
+# 虚拟环境
+venv/
+.venv/
+
+# 数据文件（根据你的需要，如果你不想把生成的 csv 传上去）
+*.csv
+
+# 编辑器配置
+.vscode/
+.idea/

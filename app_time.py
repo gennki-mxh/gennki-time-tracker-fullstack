@@ -1,9 +1,23 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+from dotenv import load_dotenv
 import pymysql
+import os
+
+# 加载环境变量
+result = load_dotenv()
 
 app = Flask(__name__)
 CORS(app) # 相当于给所有网页发一张通行证
+
+# 抽离出公共的数据库连接函数
+def get_db_connection():
+    return pymysql.connect(
+        host=os.environ.get('DB_HOST', '127.0.0.1'),
+        user=os.environ.get('DB_USER', 'root'),
+        password=os.environ.get('DB_PASSWORD',''),
+        database=os.environ.get('DB_NAME', 'test_db')
+    )
 
 # 1. 写一个 POST 接口，用来接收数据并存入数据库
 @app.route('/api/time', methods=['POST'])
@@ -20,13 +34,7 @@ def add_time_record():
         return jsonify({"status": "error", "msg": "时间不能为负数！"}), 400
 
     try:
-        # 连接 MySQL 数据库（记得把这里的密码换成你自己的）
-        connection = pymysql.connect(
-            host='127.0.0.1',
-            user='root',
-            password='admin',  # <--- 修改这里！！！
-            database='test_db'
-        )
+        connection = get_db_connection()
         cursor = connection.cursor()
 
         # 执行插入语句
@@ -46,12 +54,7 @@ def add_time_record():
 @app.route('/api/time', methods=['GET'])
 def get_all_time_records():
     try:
-        connection = pymysql.connect(
-            host='127.0.0.1',
-            user='root',
-            password='admin',  # <--- 修改这里！！！
-            database='test_db'
-        )
+        connection = get_db_connection()
         
         # 这里要用 DictCursor，这样查询出来的每行数据都是一个字典（带字段名），方便转 JSON
         cursor = connection.cursor(pymysql.cursors.DictCursor) 
@@ -77,12 +80,7 @@ def get_all_time_records():
 @app.route('/api/time/<int:record_id>', methods=['DELETE'])
 def delete_time_record(record_id):
     try:
-        connection = pymysql.connect(
-            host='127.0.0.1',
-            user='root',
-            password='admin', # <--- 记得保留你的密码
-            database='test_db'
-        )
+        connection = get_db_connection()
         cursor = connection.cursor()
         
         # 执行删除语句（这里的 %s 是安全传参，防止 SQL 注入）
@@ -111,12 +109,7 @@ def update_time_record(record_id):
     sport_h = data.get('sport', 0)
 
     try:
-        connection = pymysql.connect(
-            host='127.0.0.1',
-            user='root',
-            password='admin',  # <--- 修改这里！！！
-            database='test_db'
-        )
+        connection = get_db_connection()
         cursor = connection.cursor()
 
         # 2. 执行更新语句（注意 WHERE 条件绝对不能漏）

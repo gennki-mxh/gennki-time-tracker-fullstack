@@ -4,6 +4,7 @@ import pymysql
 import os
 from dotenv import load_dotenv
 from models import 每日记录
+from core.analyzer import 智能分析, 综合评估, 能量守恒检查
 
 # 加载环境变量
 result = load_dotenv()
@@ -59,13 +60,21 @@ def add_time_record():
         connection.commit()
         connection.close()
 
+        # 调用分析函数
+        分析列表 = 智能分析(今天的记录)
+        综合评价 = 综合评估(今天的记录)
+        能量检查 = 能量守恒检查(今天的记录.剩余时间)
+
         return jsonify({
             "status": "success",
             "msg": "时间数据已成功存入数据库！",
             "analysis":{
                 "data": 今天的记录.日期,
                 "total_hours": 今天的记录.总时间,
-                "remaining_hours": 今天的记录.剩余时间
+                "remaining_hours": 今天的记录.剩余时间,
+                "smart_analysis": 分析列表,  # 刚才的列表
+                "overall_evaluation": 综合评价,  # 综合评估
+                "energy_conservation": 能量检查  # 能量守恒
             }
         })
 

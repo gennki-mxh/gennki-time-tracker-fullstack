@@ -9,15 +9,35 @@
     <style>
         body { max-width: 800px; margin: 0 auto; padding: 2rem; }
         .result-card { 
-            border: 1px solid #ccc; 
-            padding: 20px; 
-            border-radius: 8px; 
-            margin-top: 20px;
-            background: #f8f9fa;
-            display: none; /* 默认隐藏，有数据再显示 */
+        border: 1px solid #e0e0e0; 
+        padding: 24px; 
+        border-radius: 12px; 
+        margin-top: 24px;
+        background-color: #ffffff ; 
+        color: #333333 ; 
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        display: none;  /* 默认隐藏，有数据再显示 */
         }
-        .analysis-list li { margin-bottom: 8px; }
-        .highlight { color: #d97706; font-weight: bold; }
+
+        .result-card h3, .result-card h4 {
+        color: #111111 ; 
+        }
+
+        .analysis-list li { 
+            margin-bottom: 8px; 
+            color: #444444 ;
+        }
+
+        .result-card p { color: #444444;}
+
+        .highlight { 
+            color: #d97706 ; 
+            font-weight: bold; 
+        }
+
+        #res-date {
+        color: #2563eb ;
+        }
     </style>
 </head>
 <body>
@@ -54,14 +74,14 @@
         <h3 id="res-date"></h3>
         <p>总耗时: <span id="res-total" class="highlight"></span> 小时 | 剩余: <span id="res-remaining" class="highlight"></span> 小时</p>
         
-        <h4>🧠 智能分析：</h4>
+        <h4 style="margin-top: 20px;">🧠 智能分析：</h4>
         <ul id="res-analysis" class="analysis-list"></ul>
         
-        <h4>🌈 整体评价：</h4>
-        <p id="res-evaluation"></p>
+        <h4 style="margin-top: 20px;">🌈 整体评价：</h4>
+        <p id="res-evaluation" style="color: #444 ;"></p>
         
-        <h4>🔍 能量守恒：</h4>
-        <p id="res-energy"></p>
+        <h4 style="margin-top: 20px;">🔍 能量守恒：</h4>
+        <p id="res-energy" style="color: #444 ;"></p>
     </div>
 
     <script>

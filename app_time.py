@@ -73,7 +73,7 @@ def add_time_record():
             "status": "success",
             "msg": "时间数据已成功存入数据库！",
             "analysis":{
-                "data": 今天的记录.日期,
+                "date": 今天的记录.日期,
                 "total_hours": 今天的记录.总时间,
                 "remaining_hours": 今天的记录.剩余时间,
                 "smart_analysis": 分析列表,  # 刚才的列表

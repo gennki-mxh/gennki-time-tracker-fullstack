@@ -40,7 +40,7 @@ def add_time_record():
     if sleep_h < 0 or study_h < 0 or fun_h < 0 or sport_h < 0:
         return jsonify({"status": "error", "msg": "时间不能为负数！"}), 400
 
-    # 实例化 每日记录 类
+    # 实例化“每日记录”类
     try:
         今天的记录 = 每日记录(睡眠 = sleep_h, 学习=study_h, 娱乐=fun_h, 运动= sport_h)
     except Exception as e:
@@ -48,7 +48,7 @@ def add_time_record():
 
     # 利用类里 `__post_init__` 自动计算出的剩余时间来做二次校验
     if 今天的记录.剩余时间 < 0:
-        return jsonify({"status": "error", "msg": f" {今天的记录.总时间} 超过24小时了！"}), 400
+        return jsonify({"status": "error", "msg": f" {今天的记录.总时间} 超过24小时了!"}), 400
 
     try:
         connection = get_db_connection()
@@ -56,7 +56,6 @@ def add_time_record():
 
         # 执行插入语句
         sql = "INSERT INTO time_records (sleep_hours, study_hours, fun_hours, sport_hours) VALUES (%s, %s, %s, %s)"
-        cursor.execute(sql, (sleep_h, study_h, fun_h, sport_h))
 
         # 插入数据库时，使用对象里的属性
         cursor.execute(sql, (今天的记录.睡眠, 今天的记录.学习, 今天的记录.娱乐, 今天的记录.运动))

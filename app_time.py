@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 import pymysql
 import os
@@ -20,6 +20,11 @@ def get_db_connection():
         password=os.environ.get('DB_PASSWORD',''),
         database=os.environ.get('DB_NAME', 'test_db')
     )
+
+# 渲染前端页面的路由
+@app.route('/')
+def index():
+    return render_template('index.html')
 
 # 1. 写一个 POST 接口，用来接收数据并存入数据库
 @app.route('/api/time', methods=['POST'])

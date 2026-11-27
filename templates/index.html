@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GennKi 的时间管理系统</title>
+    <!-- 引入极简 CSS 框架 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+    <style>
+        body { max-width: 800px; margin: 0 auto; padding: 2rem; }
+        .result-card { 
+            border: 1px solid #ccc; 
+            padding: 20px; 
+            border-radius: 8px; 
+            margin-top: 20px;
+            background: #f8f9fa;
+            display: none; /* 默认隐藏，有数据再显示 */
+        }
+        .analysis-list li { margin-bottom: 8px; }
+        .highlight { color: #d97706; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <hgroup>
+        <h2>⏳ GennKi 的时间管理系统</h2>
+        <p>记录你的每一天，能量守恒检查</p>
+    </hgroup>
+
+    <!-- 输入表单 -->
+    <form id="time-form" onsubmit="event.preventDefault(); submitTime();">
+        <div class="grid">
+            <label>
+                睡眠 (h)
+                <input type="number" step="0.5" id="sleep" value="7" required>
+            </label>
+            <label>
+                学习 (h)
+                <input type="number" step="0.5" id="study" value="3" required>
+            </label>
+            <label>
+                娱乐 (h)
+                <input type="number" step="0.5" id="fun" value="2" required>
+            </label>
+            <label>
+                运动 (h)
+                <input type="number" step="0.5" id="sport" value="1" required>
+            </label>
+        </div>
+        <button type="submit">提交今日数据</button>
+    </form>
+
+    <!-- 结果展示区 -->
+    <div id="result-card" class="result-card">
+        <h3 id="res-date"></h3>
+        <p>总耗时: <span id="res-total" class="highlight"></span> 小时 | 剩余: <span id="res-remaining" class="highlight"></span> 小时</p>
+        
+        <h4>🧠 智能分析：</h4>
+        <ul id="res-analysis" class="analysis-list"></ul>
+        
+        <h4>🌈 整体评价：</h4>
+        <p id="res-evaluation"></p>
+        
+        <h4>🔍 能量守恒：</h4>
+        <p id="res-energy"></p>
+    </div>
+
+    <script>
+        async function submitTime() {
+            // 1. 获取输入数据
+            const data = {
+                sleep: parseFloat(document.getElementById('sleep').value),
+                study: parseFloat(document.getElementById('study').value),
+                fun: parseFloat(document.getElementById('fun').value),
+                sport: parseFloat(document.getElementById('sport').value)
+            };
+
+            try {
+                // 2. 发送 POST 请求到你的 Flask API
+                const response = await fetch('/api/time', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (result.status === 'success') {
+                    // 3. 渲染结果
+                    const analysis = result.analysis;
+                    document.getElementById('res-date').innerText = `📅 ${analysis.date}`;
+                    document.getElementById('res-total').innerText = analysis.total_hours;
+                    document.getElementById('res-remaining').innerText = analysis.remaining_hours;
+
+                    // 渲染智能分析列表
+                    const ul = document.getElementById('res-analysis');
+                    ul.innerHTML = '';
+                    analysis.smart_analysis.forEach(item => {
+                        const li = document.createElement('li');
+                        li.innerText = item;
+                        ul.appendChild(li);
+                    });
+
+                    // 渲染评价和守恒
+                    document.getElementById('res-evaluation').innerText = analysis.overall_evaluation;
+                    document.getElementById('res-energy').innerText = analysis.energy_conservation;
+
+                    // 显示结果卡片
+                    document.getElementById('result-card').style.display = 'block';
+                } else {
+                    alert("出错了：" + result.msg);
+                }
+            } catch (error) {
+                alert("网络请求失败，请检查后端是否运行。");
+            }
+        }
+    </script>
+</body>
+</html>

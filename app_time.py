@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
+from pymysql.constants import CLIENT
 import pymysql
 import os
 from dotenv import load_dotenv
@@ -18,7 +19,8 @@ def get_db_connection():
         host=os.environ.get('DB_HOST', '127.0.0.1'),
         user=os.environ.get('DB_USER', 'root'),
         password=os.environ.get('DB_PASSWORD',''),
-        database=os.environ.get('DB_NAME', 'test_db')
+        database=os.environ.get('DB_NAME', 'test_db'),
+        client_flag=CLIENT.FOUND_ROWS  # 让 rowcount 返回"匹配行数"而不是"改变行数"
     )
 
 # 渲染前端页面的路由
@@ -30,11 +32,19 @@ def index():
 @app.route('/api/time', methods=['POST'])
 def add_time_record():
     # 获取前端发来的 JSON 数据
-    data = request.json
-    sleep_h = data.get('sleep', 0)
-    study_h = data.get('study', 0)
-    fun_h = data.get('fun', 0)
-    sport_h = data.get('sport', 0)
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict):
+        return jsonify({"status":"error", "msg":"请求体必须是 JSON 对象"}), 400
+
+    required = ('sleep', 'study', 'fun', 'sport')
+    missing = [k for k in required if k not in data]
+    if missing:
+        return jsonify({"status":"error", "msg": f"缺少字段：{', '.join(missing)}"}), 400
+
+    sleep_h = data['sleep']
+    study_h = data['study']
+    fun_h = data['fun']
+    sport_h = data['sport']
 
     # 数据校验逻辑
     if sleep_h < 0 or study_h < 0 or fun_h < 0 or sport_h < 0:
@@ -83,7 +93,7 @@ def add_time_record():
         })
 
     except Exception as e:
-        return jsonify({"status": "error", "msg": f"数据库报错了: {str(e)}"})
+        return jsonify({"status": "error", "msg": f"数据库报错了: {str(e)}"}), 500
 
 # 2. 新增 GET 接口：获取所有时间记录
 @app.route('/api/time', methods=['GET'])
@@ -109,7 +119,7 @@ def get_all_time_records():
         })
 
     except Exception as e:
-        return jsonify({"status": "error", "msg": f"查询报错: {str(e)}"})
+        return jsonify({"status": "error", "msg": f"查询报错: {str(e)}"}), 500
 
 # 3. 新增 DELETE 接口：根据 id 删除某条记录
 @app.route('/api/time/<int:record_id>', methods=['DELETE'])
@@ -122,26 +132,36 @@ def delete_time_record(record_id):
         sql = "DELETE FROM time_records WHERE id = %s"
         cursor.execute(sql, (record_id,))
         connection.commit()
+
+        affected = cursor.rowcount  # 先取数据
+        connection.close()  # 再关连接，任何分支都不会漏
         
         # 判断是否真的删除了数据
-        if cursor.rowcount == 0:
+        if affected == 0:
             return jsonify({"status": "error", "msg": f"找不到 id 为 {record_id} 的记录"}), 404
 
-        connection.close()
         return jsonify({"status": "success", "msg": f"成功删除 id 为 {record_id} 的记录！"})
 
     except Exception as e:
-        return jsonify({"status": "error", "msg": f"删除报错: {str(e)}"})
+        return jsonify({"status": "error", "msg": f"删除报错: {str(e)}"}), 500
 
 # 新增 PUT 接口：根据 id 更新数据
 @app.route('/api/time/<int:record_id>', methods=['PUT'])
 def update_time_record(record_id):
     # 1. 接收前端发来的新数据
-    data = request.json
-    sleep_h = data.get('sleep', 0)
-    study_h = data.get('study', 0)
-    fun_h = data.get('fun', 0)
-    sport_h = data.get('sport', 0)
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict):
+        return jsonify({"status": "error", "msg": "请求体必须是 JSON 对象"}), 400
+
+    required = ('sleep', 'study', 'fun', 'sport')
+    missing = [k for k in required if k not in data]
+    if missing:
+        return jsonify({"status": "error", "msg": f"缺少字段: {', '.join(missing)}"}), 400
+
+    sleep_h = data['sleep']
+    study_h = data['study']
+    fun_h = data['fun']
+    sport_h = data['sport']
 
     try:
         connection = get_db_connection()
@@ -156,15 +176,17 @@ def update_time_record(record_id):
         cursor.execute(sql, (sleep_h, study_h, fun_h, sport_h, record_id))
         connection.commit()
 
+        affected = cursor.rowcount  # 先取数据
+        connection.close()  # 再关连接
+
         # 3. 判断是否真的找到了这条数据并修改
-        if cursor.rowcount == 0:
+        if affected == 0:
             return jsonify({"status": "error", "msg": f"找不到 id 为 {record_id} 的记录，更新失败"}), 404
 
-        connection.close()
         return jsonify({"status": "success", "msg": f"成功更新 id 为 {record_id} 的记录！"})
 
     except Exception as e:
-        return jsonify({"status": "error", "msg": f"更新报错: {str(e)}"})
+        return jsonify({"status": "error", "msg": f"更新报错: {str(e)}"}), 500
     
 if __name__ == '__main__':
     app.run(debug=True)

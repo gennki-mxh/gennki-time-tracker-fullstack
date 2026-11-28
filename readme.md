@@ -2,13 +2,19 @@
 
 这是一个基于 Python 后端与原生 Web 前端构建的时间管理系统。项目融合了面向对象的数据建模、RESTful API 设计、MySQL 持久化以及智能数据分析。
 
-前端界面截图：
+## 📸 项目演示
 
-![前端界面截图](docs/screenshot.png)
+### 前端交互截图
 
-提交后数据表截图：
+![前端交互截图](docs/frontend.png)
 
-![提交后数据表截图](docs/db-0.png)
+### 智能分析结果入库
+
+![数据表数据](docs/database_data.png)
+
+### 数据库表结构
+
+![表结构](docs/database_schema.png)
 
 ## ✨ 核心功能
 
@@ -34,21 +40,22 @@
 
 ```text
 time-tracker-fullstack/
-├── core/                # 核心业务逻辑模块
-│   ├── analyzer.py      # 智能分析逻辑
-│   ├── data_manager.py  # 旧版CSV数据管理 (可标注已废弃)
-│   └── input_handler.py # 旧版终端输入处理
-├── templates/           # 前端页面
-│   └── index.html       # 主页面
-├── docs/                # 文档
-│   └── screenshot.png   # 前端界面截图
-│   └── db-0.png         # 提交后数据表截图
-│   └── db-1.png         # 数据表初始化截图
-├── app_time.py          # Flask 后端主程序
-├── models.py            # 面向对象数据模型 (每日记录类)
-├── config.py            # 阈值配置类
-├── .env.example         # 环境变量配置模板
-├── requirements.txt     # 依赖清单
+├── docs/                  # 文档与截图
+│   ├── frontend.png       # 前端界面截图
+│   ├── database_data.png  # 数据表数据截图
+│   └── database_schema.png# 表结构截图
+├── templates/             # 前端模板
+│   └── index.html         # 主页面
+├── core/                  # 核心业务逻辑
+│   ├── __init__.py
+│   └── analyzer.py        # 智能分析与评估
+├── app_time.py            # Flask 主入口 (API路由)
+├── models.py              # 数据模型类 (每日记录)
+├── config.py              # 阈值配置类
+├── test_api.py            # 接口测试脚本
+├── .env.example           # 环境变量示例
+├── .gitignore
+├── requirements.txt
 └── README.md
 ```
 
@@ -103,10 +110,6 @@ CREATE TABLE time_records (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '记录创建时间'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='每日时间记录表';
 ```
-
-数据表初始化截图：
-
-![数据表初始化截图](docs/db-1.png)
 
 如果想要了解从创建数据库到初始化数据表的全过程，请转到文末。
 
